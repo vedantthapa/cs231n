@@ -263,7 +263,8 @@ class FullyConnectedNet(object):
           if self.normalization != None:
             gamma = self.params[f'gamma{i+1}']
             beta = self.params[f'beta{i+1}']
-            x, cache = affine_norm_relu_forward(x, w, b, gamma, beta, self.bn_params[i], self.normalization)
+            x, cache = affine_norm_relu_forward(x, w, b, gamma, beta, self.bn_params[i], \
+                        self.normalization, self.dropout_param, self.use_dropout)
           else:
             x, cache = affine_relu_forward(x, w, b)
           caches.append(cache)
@@ -308,7 +309,8 @@ class FullyConnectedNet(object):
             d_layer, dw, db = affine_backward(softmax_grad, caches[i])
           else:
             if self.normalization != None:
-              d_layer, dw, db, dgamma, dbeta = affine_norm_relu_backward(d_layer, caches[i], self.normalization)
+              d_layer, dw, db, dgamma, dbeta = affine_norm_relu_backward(d_layer, caches[i], \
+                                                self.normalization, self.use_dropout)
               grads[f'gamma{i+1}'] = dgamma
               grads[f'beta{i+1}'] = dbeta
             else:  
