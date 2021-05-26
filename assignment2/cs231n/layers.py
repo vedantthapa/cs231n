@@ -539,7 +539,31 @@ def conv_forward_naive(x, w, b, conv_param):
     ###########################################################################
     # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-    pass
+    stride = conv_param['stride']
+    pad = conv_param['pad']
+    N, C, H, W = x.shape
+    F, _, HH, WW = w.shape
+
+    H_ = 1 + int((H + 2 * pad - HH) / stride)
+    W_ = 1 + int((W + 2 * pad - WW) / stride)
+
+    out = np.zeros((N, F, H_, W_))
+
+    x_pad = np.pad(x, ((0,0), (0,0),(pad,pad),(pad,pad)), 'constant')
+    H_pad, W_pad = x_pad.shape[2], x_pad.shape[3]    
+
+    # create w_row matrix
+    w_row = w.reshape(F, C*HH*WW)                            #[F x C*FH*FW]
+
+    # create x_col matrix with values that each neuron is connected to
+    x_col = np.zeros((C*HH*WW, H_*W_))                   #[C*FH*FW x H'*W']
+    for index in range(N):
+      neuron = 0 
+      for i in range(0, H_pad-HH+1, stride):
+        for j in range(0, W_pad-WW+1,stride):
+          x_col[:,neuron] = x_pad[index,:,i:i+HH,j:j+WW].reshape(C*HH*WW)
+          neuron += 1
+      out[index] = (w_row.dot(x_col) + b.reshape(F,1)).reshape(F, H_, W_)
 
     # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
     ###########################################################################
