@@ -63,7 +63,14 @@ class ThreeLayerConvNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        C, H, W = input_dim
+        PH, PW = 1 + int((H - 2) / 2), 1 + int((W - 2) / 2)
+        self.params['W1'] = weight_scale * np.random.randn(num_filters, C, filter_size, filter_size)
+        self.params['b1'] = np.zeros(num_filters)
+        self.params['W2'] = weight_scale * np.random.randn(num_filters * PH * PW, hidden_dim)
+        self.params['b2'] = np.zeros(hidden_dim)
+        self.params['W3'] = weight_scale * np.random.randn(hidden_dim, num_classes)
+        self.params['b3'] = np.zeros(num_classes)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -102,7 +109,9 @@ class ThreeLayerConvNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        out, conv_cache = conv_relu_pool_forward(X, W1, b1, conv_param, pool_param)
+        out, fc1_cache = affine_relu_forward(out, W2, b2)
+        scores, fc2_cache = affine_forward(out, W3, b3)
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
@@ -125,7 +134,19 @@ class ThreeLayerConvNet(object):
         ############################################################################
         # *****START OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
 
-        pass
+        loss, softmax_grad = softmax_loss(scores, y)
+        loss += 0.5 * self.reg * (np.sum(W1 * W1) + np.sum(W2 * W2) + np.sum(W3 * W3))
+
+        dx3, dw3, db3 = affine_backward(softmax_grad, fc2_cache)
+        dx2, dw2, db2 = affine_relu_backward(dx3, fc1_cache)
+        dx, dw, db = conv_relu_pool_backward(dx2, conv_cache)
+        
+        grads['W3'] = dw3 + self.reg * W3
+        grads['b3'] = db3       
+        grads['W2'] = dw2 + self.reg * W2
+        grads['b2'] = db2
+        grads['W1'] = dw + self.reg * W1
+        grads['b1'] = db
 
         # *****END OF YOUR CODE (DO NOT DELETE/MODIFY THIS LINE)*****
         ############################################################################
