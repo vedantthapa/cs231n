@@ -847,8 +847,13 @@ def spatial_groupnorm_forward(x, gamma, beta, G, gn_param):
     z = (x - mu)/std
     z = z.T.reshape(N, C, H, W)
     out = gamma * z + beta
-    # save values for backward call
-    cache={'std':std, 'gamma':gamma, 'z':z, 'size':size}
+	
+    cache={
+	    'std':std, 
+	    'gamma':gamma, 
+	    'z':z, 
+	    'size':size
+    }
     ###########################################################################
     #                             END OF YOUR CODE                            #
     ###########################################################################
@@ -877,12 +882,11 @@ def spatial_groupnorm_backward(dout, cache):
     dbeta = dout.sum(axis=(0,2,3), keepdims=True)
     dgamma = np.sum(dout * cache['z'], axis=(0,2,3), keepdims=True)
 
-    # reshape tensors
     z = cache['z'].reshape(size).T
     M = z.shape[0]
     dfdz = dout * cache['gamma']
     dfdz = dfdz.reshape(size).T
-    # copy from batch normalization backward alt
+
     dfdz_sum = np.sum(dfdz,axis=0)
     dx = dfdz - dfdz_sum/M - np.sum(dfdz * z,axis=0) * z/M
     dx /= cache['std']
